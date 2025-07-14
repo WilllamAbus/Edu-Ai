@@ -6,9 +6,10 @@ import SearchAndFilter from "../components/searchFilter/searchAnhFilter";
 import { getProducts } from "../services/products/produtCartApi";
 import { Product } from "../types/productType";
 import { useViewed } from "../contexts/viewContexts";
+import { useFavorite } from "../contexts/favoriteContext";
 import SuggestionBox from "../components/suggestionBox";
-import { useFavorite } from "../contexts/favoriteContext"; 
 import ChatbotSuggestion from "../components/chatboxMock";
+
 export default function HomePage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
@@ -16,6 +17,7 @@ export default function HomePage() {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [priceRange, setPriceRange] = useState("Tất cả");
+
   const { addViewed, viewedList } = useViewed();
   const { favorites } = useFavorite();
 
@@ -32,25 +34,27 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
-    let tempProducts = products.filter((p) =>
+    let temp = products.filter((p) =>
       p.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     if (priceRange === "<500K") {
-      tempProducts = tempProducts.filter((p) => p.price < 500000);
+      temp = temp.filter((p) => p.price < 500000);
     } else if (priceRange === "500K–1 triệu") {
-      tempProducts = tempProducts.filter((p) => p.price >= 500000 && p.price <= 1000000);
+      temp = temp.filter((p) => p.price >= 500000 && p.price <= 1000000);
     } else if (priceRange === ">1 triệu") {
-      tempProducts = tempProducts.filter((p) => p.price > 1000000);
+      temp = temp.filter((p) => p.price > 1000000);
     }
 
-    setFilteredProducts(tempProducts);
+    setFilteredProducts(temp);
   }, [searchTerm, priceRange, products]);
 
-  const viewedProducts = products.filter((p) => viewedList.includes(String(p.id)));
+  const viewedProducts = products.filter((p) =>
+    viewedList.includes(String(p.id))
+  );
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 max-w-[1400px] mx-auto px-4">
       <Slider />
 
       <SearchAndFilter
@@ -58,23 +62,27 @@ export default function HomePage() {
         onPriceFilterChange={setPriceRange}
       />
 
-   
 
-
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 p-4">
+      {/* Danh sách sản phẩm lọc */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
         {filteredProducts.map((p) => (
           <ProductCard key={p.id} product={p} onView={handleView} />
         ))}
       </div>
 
-      <ProductModal product={modalProd} onClose={() => setModalProd(null)} />
-
-       <SuggestionBox
+      {/* Modal sản phẩm */}
+      <ProductModal
+        product={modalProd}
+        onClose={() => setModalProd(null)}
+      />
+      {/* Gợi ý thông minh */}
+         <SuggestionBox
   products={products}
   viewedIds={viewedList}
   likedIds={favorites}
-  onView={handleView}
-/>
+   onView={handleView}
+ />
+      {/* Lịch sử xem */}
       {viewedProducts.length > 0 && (
         <section className="p-4 bg-gray-100 rounded">
           <h2 className="text-lg font-semibold mb-2">Lịch sử xem</h2>
@@ -85,7 +93,13 @@ export default function HomePage() {
           </div>
         </section>
       )}
+
+      {/* Chat AI tư vấn sản phẩm */}
       <ChatbotSuggestion onView={handleView} />
     </div>
   );
 }
+
+
+
+
