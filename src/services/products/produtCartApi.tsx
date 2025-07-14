@@ -1,6 +1,6 @@
 import { Product } from "../../types/productType";
 
-const mockProducts: Product[] = [
+ export const mockProducts: Product[] = [
   {
     id: 1,
     name: "TOEIC 550",
@@ -121,7 +121,21 @@ export async function getProducts(): Promise<Product[]> {
 
 
 
-export function getSuggestions(userId: string) {
-  const shuffled = [...mockProducts].sort(() => 0.5 - Math.random());
-  return shuffled.slice(0, 3);
+
+export function getSuggestionsByBehavior(viewedIds: string[], likedIds: string[]) {
+  const priorityList = mockProducts.filter(
+    (p) => viewedIds.includes(String(p.id)) || likedIds.includes(String(p.id))
+  );
+
+  const remainingList = mockProducts.filter(
+    (p) => !viewedIds.includes(String(p.id)) && !likedIds.includes(String(p.id))
+  );
+
+  // Ưu tiên sản phẩm liên quan, sau đó trộn phần còn lại nếu thiếu
+  const finalList = [
+    ...priorityList,
+    ...remainingList.sort(() => 0.5 - Math.random()),
+  ];
+
+  return finalList.slice(0, 4);
 }

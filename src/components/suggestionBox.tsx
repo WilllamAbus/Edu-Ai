@@ -1,11 +1,19 @@
 import React, { useState } from "react";
 import { Product } from "../types/productType";
 import ProductCard from "./productCart";
-import { getSuggestions } from "../services/products/produtCartApi";
+import { getSuggestionsByBehavior } from "../services/products/produtCartApi";
 
-const images = import.meta.glob("../assets/products/*.{jpg,png,jpeg}", { eager: true, query: "?url", import: "default" });
-
-export default function SuggestionBox({ userId, onView }: { userId: string; onView: (product: Product) => void }) {
+export default function SuggestionBox({
+  products,
+  viewedIds,
+  likedIds,
+  onView,
+}: {
+  products: Product[];
+  viewedIds: string[];
+  likedIds: string[];
+  onView: (product: Product) => void;
+}) {
   const [suggestions, setSuggestions] = useState<Product[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -14,8 +22,11 @@ export default function SuggestionBox({ userId, onView }: { userId: string; onVi
     try {
       setLoading(true);
       setError("");
-      const data = getSuggestions(userId);
-      setSuggestions(data);
+      const suggestedData = getSuggestionsByBehavior(viewedIds, likedIds);
+      const suggestedProducts = products.filter((p) =>
+        suggestedData.map((s) => s.id).includes(p.id)
+      );
+      setSuggestions(suggestedProducts);
     } catch (err: any) {
       setError(err.message || "Có lỗi xảy ra");
     } finally {
@@ -37,27 +48,9 @@ export default function SuggestionBox({ userId, onView }: { userId: string; onVi
 
       {suggestions && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-          {suggestions.map((p) => {
-            const imageUrl = images[`../assets/products/${p.image}`] as string;
-            return (
-              <div key={p.id} className="bg-white rounded shadow p-4 relative">
-                <img
-                  src={imageUrl}
-                  alt={p.name}
-                  className="w-full h-[350px] object-cover rounded"
-                />
-                <h2 className="mt-2 font-semibold">{p.name}</h2>
-                <p>{p.shortDesc}</p>
-                <p className="text-red-500 font-bold">{p.price.toLocaleString()}₫</p>
-                <button
-                  onClick={() => onView(p)}
-                  className="mt-2 bg-primary text-white px-3 py-1 rounded"
-                >
-                  Xem chi tiết
-                </button>
-              </div>
-            );
-          })}
+          {suggestions.map((p) => (
+            <ProductCard key={p.id} product={p} onView={onView} />
+          ))}
         </div>
       )}
     </div>

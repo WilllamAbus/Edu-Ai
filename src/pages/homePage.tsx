@@ -7,7 +7,8 @@ import { getProducts } from "../services/products/produtCartApi";
 import { Product } from "../types/productType";
 import { useViewed } from "../contexts/viewContexts";
 import SuggestionBox from "../components/suggestionBox";
-
+import { useFavorite } from "../contexts/favoriteContext"; 
+import ChatbotSuggestion from "../components/chatboxMock";
 export default function HomePage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
@@ -16,6 +17,7 @@ export default function HomePage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [priceRange, setPriceRange] = useState("Tất cả");
   const { addViewed, viewedList } = useViewed();
+  const { favorites } = useFavorite();
 
   const handleView = (product: Product) => {
     addViewed(String(product.id));
@@ -67,7 +69,12 @@ export default function HomePage() {
 
       <ProductModal product={modalProd} onClose={() => setModalProd(null)} />
 
-           <SuggestionBox userId="user1" onView={handleView} />
+       <SuggestionBox
+  products={products}
+  viewedIds={viewedList}
+  likedIds={favorites}
+  onView={handleView}
+/>
       {viewedProducts.length > 0 && (
         <section className="p-4 bg-gray-100 rounded">
           <h2 className="text-lg font-semibold mb-2">Lịch sử xem</h2>
@@ -78,6 +85,7 @@ export default function HomePage() {
           </div>
         </section>
       )}
+      <ChatbotSuggestion onView={handleView} />
     </div>
   );
 }
